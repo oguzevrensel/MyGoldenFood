@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h1>Welcome to the Admin Dashboard</h1>
+
+<p>@TempData["Message"]</p>
+
+<ul>
+    <li><a href="/Products">Manage Products</a></li>
+    <li><a href="/Users">Manage Users</a></li>
+</ul>
+
+<div class="d-flex justify-content-end mt-3">
+    <a href="/Admin/Logout" class="btn btn-danger">Logout</a>
+</div>

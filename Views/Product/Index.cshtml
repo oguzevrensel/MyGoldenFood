@@ -1,0 +1,45 @@
+﻿@{
+    Layout = null;
+}
+
+@model IEnumerable<MyGoldenFood.Models.Product>
+
+<h1>Products</h1>
+<a href="/Product/Create" class="btn btn-primary mb-3">Add New Product</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Description</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(product.ImagePath))
+                    {
+                        <img src="@product.ImagePath" alt="@product.Name" style="width: 100px;">
+                    }
+                </td>
+                <td>
+                    <a href="/Product/Edit/@product.Id" class="btn btn-warning">Edit</a>
+                    <a href="/Product/Details/@product.Id" class="btn btn-info">Details</a>
+
+                    <!-- Silme Formu -->
+                    <form asp-action="DeleteConfirmed" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                        <input type="hidden" name="id" value="@product.Id" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
