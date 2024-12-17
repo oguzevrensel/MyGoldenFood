@@ -14,59 +14,50 @@ namespace MyGoldenFood.Controllers
         {
             _context = context;
         }
+
+        // Giriş Sayfası
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-
+        // Giriş Doğrulama
         [HttpPost]
         public async Task<IActionResult> Index(string username, string password)
         {
-            // Kullanıcı doğrulama
             var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
 
             if (user != null)
             {
-                // Kullanıcı oturumu için Claims oluşturma
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim("IsAdmin", "true") // Ek bir claim
+                    new Claim(ClaimTypes.Role, "Admin") // Admin rolü ekleniyor
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, "AdminCookie");
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = true // Oturum kalıcı olacak (tarayıcı kapansa bile)
-                };
-
-                // Authentication işlemini yap
-                await HttpContext.SignInAsync("AdminCookie", new ClaimsPrincipal(claimsIdentity), authProperties);
+                await HttpContext.SignInAsync("AdminCookie", new ClaimsPrincipal(claimsIdentity));
 
                 return RedirectToAction("Dashboard");
             }
 
-            // Hatalı giriş
-            ViewBag.ErrorMessage = "Invalid username or password!";
+            ViewBag.ErrorMessage = "Geçersiz kullanıcı adı veya şifre!";
             return View();
         }
 
-
-
+        // Dashboard Sayfası
         [Authorize(AuthenticationSchemes = "AdminCookie")]
-        [HttpGet]     
         public IActionResult Dashboard()
         {
             return View();
         }
 
-        [HttpGet]
+        // Oturum Kapatma
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("AdminCookie");
             return RedirectToAction("Index");
         }
-
     }
 }

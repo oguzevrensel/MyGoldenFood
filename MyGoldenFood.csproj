@@ -19,4 +19,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Product\" />
+    <Folder Include="wwwroot\uploads\" />
+    <Folder Include="wwwroot\NewFolder\" />
+  </ItemGroup>
+
 </Project>

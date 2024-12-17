@@ -15,7 +15,7 @@ builder.Services.AddAuthentication("AdminCookie")
     .AddCookie("AdminCookie", options =>
     {
         options.LoginPath = "/Admin/Index"; 
-        options.AccessDeniedPath = "/Admin/AccessDenied";
+        options.AccessDeniedPath = "/Admin/Index";
     });
 
 var app = builder.Build();

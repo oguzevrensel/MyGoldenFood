@@ -1,160 +1,123 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyGoldenFood.ApplicationDbContext;
 using MyGoldenFood.Models;
 
 namespace MyGoldenFood.Controllers
 {
-    /*[Authorize(Roles = "Admin")] */// Tüm işlemleri sadece Admin kullanıcıları yapabilir
+    [Authorize(AuthenticationSchemes = "AdminCookie", Roles = "Admin")]
     public class ProductController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
+        public ProductController(AppDbContext context)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
         }
 
-        // 1. Tüm ürünleri listeleme
+        // Ürün Listeleme
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> ProductList()
         {
-            var products = _context.Products.ToList();
-            return View(products);
+            var products = await _context.Products.ToListAsync();
+            return PartialView("_ProductListPartial", products);
         }
 
-        // 2. Yeni ürün ekleme - Form görüntüleme (GET)
+        // Yeni Ürün Ekle - GET
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return PartialView("_CreateProductPartial");
         }
 
-        // 2. Yeni ürün ekleme - Veritabanına kaydetme (POST)
+        // Yeni Ürün Ekle - POST
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Product product, IFormFile? imageFile)
+        public async Task<IActionResult> Create(Product model, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
-                if (imageFile != null)
+                if (ImageFile != null && ImageFile.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                    string uploadsFolder = Path.Combine("wwwroot", "uploads");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        imageFile.CopyTo(fileStream);
+                        await ImageFile.CopyToAsync(stream);
                     }
-
-                    product.ImagePath = "/uploads/" + uniqueFileName;
+                    model.ImagePath = "/uploads/" + uniqueFileName;
                 }
 
-                _context.Products.Add(product);
-                _context.SaveChanges();
-                return RedirectToAction("Index");
+                _context.Products.Add(model);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Ürün başarıyla eklendi!" });
             }
-            return View(product);
+            return PartialView("_CreateProductPartial", model);
         }
 
-        // 3. Ürün detayları görüntüleme
+
+
+
+        // Ürün Düzenle - GET
         [HttpGet]
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            return View(product);
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+            return PartialView("_EditProductPartial", product);
         }
 
-        // 4. Ürün düzenleme - Form görüntüleme (GET)
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            return View(product);
-        }
-
-        // 4. Ürün düzenleme - Veritabanına kaydetme (POST)
+        // Ürün Düzenle - POST
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(Product product, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(Product model, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
-                var existingProduct = _context.Products.FirstOrDefault(p => p.Id == product.Id);
-                if (existingProduct == null)
-                {
-                    return NotFound();
-                }
+                var existingProduct = await _context.Products.FindAsync(model.Id);
+                if (existingProduct == null) return NotFound();
 
-                existingProduct.Name = product.Name;
-                existingProduct.Description = product.Description;
+                existingProduct.Name = model.Name;
+                existingProduct.Description = model.Description;
 
-                if (imageFile != null)
+                if (ImageFile != null && ImageFile.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                    string uploadsFolder = Path.Combine("wwwroot", "uploads");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        imageFile.CopyTo(fileStream);
-                    }
-
-                    if (!string.IsNullOrEmpty(existingProduct.ImagePath))
-                    {
-                        string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, existingProduct.ImagePath.TrimStart('/'));
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
+                        await ImageFile.CopyToAsync(stream);
                     }
 
                     existingProduct.ImagePath = "/uploads/" + uniqueFileName;
                 }
 
-                _context.Products.Update(existingProduct);
-                _context.SaveChanges();
-                return RedirectToAction("Index");
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Ürün başarıyla güncellendi!" });
             }
-            return View(product);
+            return PartialView("_EditProductPartial", model);
         }
 
 
-        //[Authorize(Roles = "Admin")]
+
+        // Ürün Silme
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
+            var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
-                return NotFound();
-            }
-
-            // Ürüne ait görseli sil
-            if (!string.IsNullOrEmpty(product.ImagePath))
-            {
-                string filePath = Path.Combine(_webHostEnvironment.WebRootPath, product.ImagePath.TrimStart('/'));
-                if (System.IO.File.Exists(filePath))
-                {
-                    System.IO.File.Delete(filePath);
-                }
+                return Json(new { success = false, message = "Ürün bulunamadı!" });
             }
 
             _context.Products.Remove(product);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Ürün başarıyla silindi!" });
         }
 
     }
