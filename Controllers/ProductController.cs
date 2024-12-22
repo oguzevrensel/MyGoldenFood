@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyGoldenFood.ApplicationDbContext;
 using MyGoldenFood.Models;
+using MyGoldenFood.Services;
 
 namespace MyGoldenFood.Controllers
 {
@@ -10,10 +11,12 @@ namespace MyGoldenFood.Controllers
     public class ProductController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly CloudinaryService _cloudinaryService;
 
-        public ProductController(AppDbContext context)
+        public ProductController(AppDbContext context, CloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         // Ürün Listeleme
@@ -39,26 +42,20 @@ namespace MyGoldenFood.Controllers
             {
                 if (ImageFile != null && ImageFile.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine("wwwroot", "uploads");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    var uploadResult = await _cloudinaryService.UploadImageAsync(ImageFile, "products");
+                    if (uploadResult != null)
                     {
-                        await ImageFile.CopyToAsync(stream);
+                        model.ImagePath = uploadResult;
                     }
-                    model.ImagePath = "/uploads/" + uniqueFileName;
                 }
 
                 _context.Products.Add(model);
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Ürün başarıyla eklendi!" });
             }
+
             return PartialView("_CreateProductPartial", model);
         }
-
-
-
 
         // Ürün Düzenle - GET
         [HttpGet]
@@ -72,7 +69,7 @@ namespace MyGoldenFood.Controllers
 
         // Ürün Düzenle - POST
         [HttpPost]
-        public async Task<IActionResult> Edit(Product model, IFormFile ImageFile)
+        public async Task<IActionResult> Edit(Product model, IFormFile? ImageFile)
         {
             if (ModelState.IsValid)
             {
@@ -84,23 +81,29 @@ namespace MyGoldenFood.Controllers
 
                 if (ImageFile != null && ImageFile.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine("wwwroot", "uploads");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    // Yeni resim yüklendiğinde eski resim silinir
+                    await _cloudinaryService.DeleteImageAsync(existingProduct.ImagePath);
+                    var uploadResult = await _cloudinaryService.UploadImageAsync(ImageFile, "products");
+                    if (uploadResult != null)
                     {
-                        await ImageFile.CopyToAsync(stream);
+                        existingProduct.ImagePath = uploadResult;
                     }
+                }
 
-                    existingProduct.ImagePath = "/uploads/" + uniqueFileName;
+                // Resim değişikliği yapılmadığında mevcut resim yolu korunur
+                else if (string.IsNullOrEmpty(existingProduct.ImagePath) && !string.IsNullOrEmpty(model.ImagePath))
+                {
+                    existingProduct.ImagePath = model.ImagePath;
                 }
 
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Ürün başarıyla güncellendi!" });
             }
+
             return PartialView("_EditProductPartial", model);
         }
+
+
 
 
 
@@ -114,11 +117,15 @@ namespace MyGoldenFood.Controllers
                 return Json(new { success = false, message = "Ürün bulunamadı!" });
             }
 
+            if (!string.IsNullOrEmpty(product.ImagePath))
+            {
+                await _cloudinaryService.DeleteImageAsync(product.ImagePath);
+            }
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Ürün başarıyla silindi!" });
         }
-
     }
 }
