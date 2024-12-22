@@ -107,7 +107,6 @@ namespace MyGoldenFood.Controllers
 
 
 
-        // Ürün Silme
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
