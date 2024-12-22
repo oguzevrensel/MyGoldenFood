@@ -8,6 +8,8 @@
 <div class="modal-body">
     <form id="editForm" enctype="multipart/form-data">
         <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="CurrentImagePath" value="@Model.ImagePath" /> <!-- Mevcut resim yolu burada gizleniyor -->
+
         <div class="mb-3">
             <label for="Name" class="form-label">Ürün Adı</label>
             <input type="text" name="Name" id="Name" class="form-control" value="@Model.Name" required>
@@ -32,7 +34,7 @@
 </div>
 
 <script>
-    // Resim seçildiğinde yeni önizleme fonksiyonu
+    // Resim seçildiğinde önizleme fonksiyonu
     function previewEditImage(event) {
         const preview = document.getElementById("editPreview");
         const file = event.target.files[0];
@@ -40,7 +42,7 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                preview.src = e.target.result; // Yeni resim önizlemesini değiştir
+                preview.src = e.target.result; // Yeni resim önizlemesi
             }
             reader.readAsDataURL(file);
         }

@@ -18,9 +18,7 @@
                 <td>
                     @if (!string.IsNullOrEmpty(product.ImagePath))
                     {
-                        <img src="~/uploads/@System.IO.Path.GetFileName(product.ImagePath)"
-                             alt="Ürün Resmi"
-                             style="width: 80px; height: auto;" />
+                        <img src="@product.ImagePath" alt="Ürün Resmi" style="max-width: 100px; max-height: 100px;" />
                     }
                     else
                     {
@@ -28,8 +26,8 @@
                     }
                 </td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="loadEditForm(@product.Id)">Düzenle</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(@product.Id)">Sil</button>
+                    <button class="btn btn-warning" onclick="loadEditForm(@product.Id)">Düzenle</button>
+                    <button class="btn btn-danger" onclick="deleteProduct(@product.Id)">Sil</button>
                 </td>
             </tr>
         }

@@ -15,7 +15,11 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5164",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CLOUDINARY_CLOUD_NAME": "dbhogeepn",
+        "CLOUDINARY_API_KEY": "117253388472523",
+        "CLOUDINARY_API_SECRET": "TAV7vQFpooh6X_zjwwn-RkaKe78",
+        "DATABASE_CONNECTION_STRING": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=MyGoldenFood;Integrated Security=True;"
       }
     },
     "https": {
@@ -24,14 +28,22 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7093;http://localhost:5164",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CLOUDINARY_CLOUD_NAME": "dbhogeepn",
+        "CLOUDINARY_API_KEY": "117253388472523",
+        "CLOUDINARY_API_SECRET": "TAV7vQFpooh6X_zjwwn-RkaKe78",
+        "DATABASE_CONNECTION_STRING": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=MyGoldenFood;Integrated Security=True;"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CLOUDINARY_CLOUD_NAME": "dbhogeepn",
+        "CLOUDINARY_API_KEY": "117253388472523",
+        "CLOUDINARY_API_SECRET": "TAV7vQFpooh6X_zjwwn-RkaKe78",
+        "DATABASE_CONNECTION_STRING": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=MyGoldenFood;Integrated Security=True;"
       }
     }
   }
