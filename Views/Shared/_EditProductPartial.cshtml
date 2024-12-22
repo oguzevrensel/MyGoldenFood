@@ -1,0 +1,74 @@
+﻿@model MyGoldenFood.Models.Product
+
+<div class="modal-header bg-warning text-white">
+    <h5 class="modal-title">Ürün Düzenle</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <form id="editForm" enctype="multipart/form-data">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="CurrentImagePath" value="@Model.ImagePath" /> <!-- Mevcut resim yolu burada gizleniyor -->
+
+        <div class="mb-3">
+            <label for="Name" class="form-label">Ürün Adı</label>
+            <input type="text" name="Name" id="Name" class="form-control" value="@Model.Name" required>
+        </div>
+        <div class="mb-3">
+            <label for="Description" class="form-label">Açıklama</label>
+            <textarea name="Description" id="Description" class="form-control" rows="3">@Model.Description</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="ImageFile" class="form-label">Yeni Resim Seç</label>
+            <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" onchange="previewEditImage(event)">
+        </div>
+        <div class="mb-3 text-center">
+            <img id="editPreview" src="@Model.ImagePath" alt="Mevcut Resim" class="img-thumbnail" style="max-width: 200px;" />
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+    <button type="button" class="btn btn-warning" onclick="submitEditForm()">Güncelle</button>
+</div>
+
+<script>
+    // Resim seçildiğinde önizleme fonksiyonu
+    function previewEditImage(event) {
+        const preview = document.getElementById("editPreview");
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result; // Yeni resim önizlemesi
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function submitEditForm() {
+        var formData = new FormData($("#editForm")[0]);
+
+        $.ajax({
+            url: "/Product/Edit",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire("Başarılı", response.message, "success");
+                    $("#modal").modal('hide');
+                    loadProductList();
+                } else {
+                    Swal.fire("Hata", response.message, "error");
+                }
+            },
+            error: function () {
+                Swal.fire("Hata", "Bir hata oluştu!", "error");
+            }
+        });
+    }
+</script>

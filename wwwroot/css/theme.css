@@ -11,6 +11,10 @@ a {
     color: #fff;
     text-decoration: none;
 }
+.about-page footer a {
+    color: black !important;
+}
+
 
 a:hover {
     color: #efefef;
